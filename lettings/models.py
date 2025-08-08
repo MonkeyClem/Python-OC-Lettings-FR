@@ -20,6 +20,9 @@ class Address(models.Model):
 class Letting(models.Model):
     title = models.CharField(max_length=256)
     address = models.OneToOneField(Address, on_delete=models.CASCADE)
+    
+    class Meta: 
+        verbose_name_plural = "Lettings"
 
     def __str__(self):
         return self.title
