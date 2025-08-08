@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinLengthValidator
 
+
 class Address(models.Model):
     number = models.PositiveIntegerField(validators=[MaxValueValidator(9999)])
     street = models.CharField(max_length=64)
@@ -10,7 +11,7 @@ class Address(models.Model):
     country_iso_code = models.CharField(max_length=3, validators=[MinLengthValidator(3)])
 
     def __str__(self):
-        return f'{self.number} {self.street}'
+        return f"{self.number} {self.street}"
 
 
 class Letting(models.Model):
@@ -19,5 +20,3 @@ class Letting(models.Model):
 
     def __str__(self):
         return self.title
-
-# Create your models here.
