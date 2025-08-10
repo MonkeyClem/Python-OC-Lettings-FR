@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container text-center" style="padding-top: 100px;">
+  <h1>Oups…</h1>
+  <h2>500 — Erreur interne du serveur</h2>
+  <p>Une erreur inattendue est survenue. Notre équipe a été notifiée.</p>
+  <a href="{% url 'index' %}" class="btn btn-primary">Retour à l’accueil</a>
+</div>
+{% endblock %}
