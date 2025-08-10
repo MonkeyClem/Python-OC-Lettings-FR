@@ -1,6 +1,6 @@
 """Vues publiques de l'app profiles (liste et détail)."""
 
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from profiles.models import Profile
 
 
@@ -32,6 +32,7 @@ def profile(request, username):
         Http404: Si aucun profil n'est lié à ce nom d'utilisateur.
     """
     
-    profile = Profile.objects.get(user__username=username)
+    # profile = Profile.objects.get(user__username=username)
+    profile = get_object_or_404(Profile, user__username = username )
     context = {"profile": profile}
     return render(request, "profile.html", context)
