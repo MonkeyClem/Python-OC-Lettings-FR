@@ -1,0 +1,27 @@
+version: "3.9"
+
+services:
+  web:
+    # 1) Construit l'image depuis ton Dockerfile (même dossier)
+    build: .
+    image: oc-lettings:local
+
+    # 2) Expose le serveur web en local
+    ports:
+      - "8000:8000"
+
+    # 3) Variables d'environnement (prod-like, mais sans forcer HTTPS)
+    environment:
+      DJANGO_DEBUG: "0"
+      DJANGO_SECRET_KEY: "local-prod-key"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
+      DJANGO_CSRF_TRUSTED_ORIGINS: "http://localhost,http://127.0.0.1"
+      DJANGO_SECURE_SSL_REDIRECT: "0"
+      # DATABASE_URL: "postgres://user:pass@db:5432/oc_lettings"  # (pour plus tard)
+
+    # 4) Monte ta base SQLite locale dans le conteneur
+    volumes:
+      - ./oc-lettings-site.sqlite3:/app/oc-lettings-site.sqlite3
+
+    # 5) Commande de démarrage (gunicorn)
+    command: ["gunicorn", "--timeout", "60", "--bind", "0.0.0.0:8000", "oc_lettings_site.wsgi:application"]
