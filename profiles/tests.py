@@ -3,7 +3,6 @@ from django.contrib.auth.models import User
 from profiles.models import Profile
 from django.urls import reverse
 
-
 """Tests des modèles profiles."""
 
 @pytest.mark.django_db
@@ -11,7 +10,6 @@ def test_profile_str():
     user = User.objects.create_user(username="alice", password="x")
     profile = Profile.objects.create(user=user, favorite_city="Paris")
     assert str(profile) == "alice"
-
 
 """Tests d'URLs de l'app profiles."""
 
@@ -29,17 +27,15 @@ def test_profile_detail_url_ok(client):
     assert resp.status_code == 200
 
 
-"""Tests des vues profiles (liste et détail)."""
-from django.contrib.auth.models import User
-from profiles.models import Profile
 
 @pytest.mark.django_db
 def test_index_lists_profiles(client):
+    """Tests des vues profiles (liste et détail)."""
     user = User.objects.create_user(username="zoe", password="x")
     Profile.objects.create(user=user, favorite_city="Nice")
     resp = client.get(reverse("profiles:index"))
     assert resp.status_code == 200
-    assert b"zoe" in resp.content  # si le template affiche le username
+    assert b"zoe" in resp.content
 
 @pytest.mark.django_db
 def test_detail_404_when_missing(client):

@@ -1,6 +1,6 @@
-from django.test import TestCase
 import pytest
 from lettings.models import Address, Letting
+from django.urls import reverse
 
 # Create your tests here.
 @pytest.mark.django_db
@@ -20,11 +20,7 @@ def test_letting_str():
     
     
     
-    
 """Tests d'URLs de l'app lettings."""
-import pytest
-from django.urls import reverse
-from lettings.models import Address, Letting
 
 @pytest.mark.django_db
 def test_lettings_index_url_ok(client):
@@ -37,14 +33,9 @@ def test_letting_detail_url_ok(client):
     letting = Letting.objects.create(title="Test", address=addr)
     url = reverse("lettings:letting", kwargs={"letting_id": letting.id})
     resp = client.get(url)
-    assert resp.status_code == 200
-    
-    
+    assert resp.status_code == 200  
 
 """Tests des vues lettings (liste et détail)."""
-import pytest
-from django.urls import reverse
-from lettings.models import Address, Letting
 
 @pytest.mark.django_db
 def test_index_lists_lettings(client):
@@ -52,10 +43,9 @@ def test_index_lists_lettings(client):
     Letting.objects.create(title="T1", address=addr)
     resp = client.get(reverse("lettings:index"))
     assert resp.status_code == 200
-    assert b"T1" in resp.content  # si le template affiche le titre
+    assert b"T1" in resp.content 
 
 @pytest.mark.django_db
 def test_detail_404_when_missing(client):
-    # suppose que ta vue utilise get_object_or_404; sinon 500 → à ajuster
     resp = client.get(reverse("lettings:letting", kwargs={"letting_id": 999999}))
     assert resp.status_code == 404
