@@ -4,7 +4,6 @@ import logging
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 import sentry_sdk
-from lettings.models import Letting
 from .models import Letting
 
 logger = logging.getLogger(__name__)
