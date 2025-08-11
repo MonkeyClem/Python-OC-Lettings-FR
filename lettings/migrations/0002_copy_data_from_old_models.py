@@ -36,8 +36,8 @@
 #     ]
 
 
-
 from django.db import migrations
+
 
 def copy_address_and_letting(apps, schema_editor):
     # Si l'app d'origine n'est pas installée (DB neuve), on ne copie rien.
@@ -68,6 +68,7 @@ def copy_address_and_letting(apps, schema_editor):
             title=old_letting.title,
             address=addr_map.get(old_letting.address_id),
         )
+
 
 class Migration(migrations.Migration):
     dependencies = [

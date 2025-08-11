@@ -13,6 +13,6 @@ urlpatterns = [
     # path("lettings/<int:letting_id>/", views.letting, name="letting"),
     path("profiles/", include("profiles.urls", namespace="profiles")),
     # path("profiles/<str:username>/", views.profile, name="profile"),
-    path('sentry-debug/', trigger_error),
+    path("sentry-debug/", trigger_error),
     path("admin/", admin.site.urls),
 ]

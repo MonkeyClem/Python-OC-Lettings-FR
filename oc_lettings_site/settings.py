@@ -2,7 +2,7 @@ import os
 import logging
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
-from sentry_sdk.integrations.logging import LoggingIntegration 
+from sentry_sdk.integrations.logging import LoggingIntegration
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -10,11 +10,13 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
+
 def _env_bool(name: str, default: bool = False) -> bool:
     v = os.getenv(name)
     if v is None:
         return default
     return v.lower() in {"1", "true", "yes", "on"}
+
 
 # DEBUG via env (1 en dev, 0 en prod)
 DEBUG = _env_bool("DJANGO_DEBUG", default=True)
@@ -29,18 +31,22 @@ if not SECRET_KEY:
 
 
 # ALLOWED_HOSTS (CSV -> liste)
-ALLOWED_HOSTS = [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()]
+ALLOWED_HOSTS = [
+    h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()
+]
 if not DEBUG and not ALLOWED_HOSTS:
     raise RuntimeError("DJANGO_ALLOWED_HOSTS doit être défini en production")
 
 # CSRF Trusted Origins (CSV), utile derrière domaine public en HTTPS
-CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
-
+CSRF_TRUSTED_ORIGINS = [
+    o.strip()
+    for o in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if o.strip()
+]
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
-
 
 
 # # SECURITY WARNING: don't run with debug turned on in production!
@@ -60,12 +66,12 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "oc_lettings_site.apps.OCLettingsSiteConfig",
     "lettings",
-    "profiles",    
+    "profiles",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",   
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -151,7 +157,7 @@ STATICFILES_DIRS = [
 
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-# Debug false security 
+# Debug false security
 if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
@@ -177,18 +183,18 @@ SENTRY_PROFILES_SAMPLE_RATE = float(os.getenv("SENTRY_PROFILES_SAMPLE_RATE", "0.
 
 try:
     sentry_logging = LoggingIntegration(
-        level=logging.INFO,      # capte tous les logs >= INFO comme breadcrumbs
+        level=logging.INFO,  # capte tous les logs >= INFO comme breadcrumbs
         event_level=logging.ERROR,
         sentry_logs_level=logging.INFO,  # Capture INFO and above as logs
     )
-    if SENTRY_DSN: 
+    if SENTRY_DSN:
         sentry_sdk.init(
             dsn=SENTRY_DSN,
             integrations=[DjangoIntegration(), sentry_logging],
             environment=SENTRY_ENV,
             release=SENTRY_RELEASE,
-            traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,   
-            profiles_sample_rate=SENTRY_PROFILES_SAMPLE_RATE, 
+            traces_sample_rate=SENTRY_TRACES_SAMPLE_RATE,
+            profiles_sample_rate=SENTRY_PROFILES_SAMPLE_RATE,
             send_default_pii=False,
             _experiments={
                 "enable_logs": True,
@@ -208,9 +214,7 @@ LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,  # permet de garder les loggers de Django
     "formatters": {
-        "verbose": {
-            "format": "%(asctime)s %(levelname)s [%(name)s] %(message)s"
-        },
+        "verbose": {"format": "%(asctime)s %(levelname)s [%(name)s] %(message)s"},
     },
     "handlers": {
         "console": {

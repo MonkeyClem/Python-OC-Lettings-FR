@@ -9,6 +9,7 @@ from .models import Letting
 
 logger = logging.getLogger(__name__)
 
+
 def index(request):
     """Liste toutes les locations.
 
@@ -18,13 +19,12 @@ def index(request):
     Returns:
         HttpResponse: Page HTML avec la liste des locations.
     """
-    
+
     logger.info("Listing all lettings")
     sentry_sdk.set_tag("feature", "lettings_index")
     lettings_list = Letting.objects.all()
     context = {"lettings_list": lettings_list}
     return render(request, "lettings/index.html", context)
-
 
 
 def letting(request, letting_id):
@@ -40,16 +40,16 @@ def letting(request, letting_id):
     Raises:
         Http404: Si aucune location ne correspond à l'ID fourni.
     """
-    
+
     sentry_sdk.set_tag("feature", "letting_detail")
     sentry_sdk.set_context("letting_lookup", {"letting_id": letting_id})
     if request.user.is_authenticated:
         sentry_sdk.set_user({"id": str(request.user.id)})
-    
+
     logger.info("Fetching letting id=%s", letting_id)
-    # Déclenchement d'un log ERROR pour test 
+    # Déclenchement d'un log ERROR pour test
     # logger.error("Test log ERROR pour Sentry")
-    
+
     try:
         # Astuce perf: va chercher l'adresse en même temps
         letting = get_object_or_404(

@@ -6,6 +6,7 @@ from profiles.models import Profile
 def test_dummy():
     assert 1
 
+
 @pytest.mark.django_db
 def test_profile_str():
     user = User.objects.create_user(username="alice", password="x")

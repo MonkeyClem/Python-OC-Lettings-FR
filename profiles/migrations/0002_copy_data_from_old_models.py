@@ -25,6 +25,7 @@
 
 from django.db import migrations
 
+
 def copy_profiles(apps, schema_editor):
     try:
         OldProfile = apps.get_model("oc_lettings_site", "Profile")
@@ -39,6 +40,7 @@ def copy_profiles(apps, schema_editor):
             user=User.objects.get(pk=old.user_id),
             favorite_city=old.favorite_city,
         )
+
 
 class Migration(migrations.Migration):
     dependencies = [

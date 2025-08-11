@@ -5,18 +5,22 @@ from django.urls import reverse
 
 """Tests des modèles profiles."""
 
+
 @pytest.mark.django_db
 def test_profile_str():
     user = User.objects.create_user(username="alice", password="x")
     profile = Profile.objects.create(user=user, favorite_city="Paris")
     assert str(profile) == "alice"
 
+
 """Tests d'URLs de l'app profiles."""
+
 
 @pytest.mark.django_db
 def test_profiles_index_url_ok(client):
     resp = client.get(reverse("profiles:index"))
     assert resp.status_code == 200
+
 
 @pytest.mark.django_db
 def test_profile_detail_url_ok(client):
@@ -25,7 +29,6 @@ def test_profile_detail_url_ok(client):
     url = reverse("profiles:profile", kwargs={"username": "bob"})
     resp = client.get(url)
     assert resp.status_code == 200
-
 
 
 @pytest.mark.django_db
@@ -37,10 +40,12 @@ def test_index_lists_profiles(client):
     assert resp.status_code == 200
     assert b"zoe" in resp.content
 
+
 @pytest.mark.django_db
 def test_detail_404_when_missing(client):
     resp = client.get(reverse("profiles:profile", kwargs={"username": "nope"}))
     assert resp.status_code == 404
+
 
 @pytest.mark.django_db
 def test_profile_view_ok(client):
@@ -51,9 +56,9 @@ def test_profile_view_ok(client):
     assert response.status_code == 200
     assert b"Paris" in response.content
 
+
 @pytest.mark.django_db
 def test_profile_view_404(client):
     url = reverse("profiles:profile", kwargs={"username": "nope"})
     response = client.get(url)
     assert response.status_code == 404
-    
