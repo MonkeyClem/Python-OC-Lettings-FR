@@ -1,4 +1,23 @@
-**/__pycache__
-*.pyc
-venv
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+*.sqlite3
+
+# Django
+/staticfiles/
+media/
 .env
+.env.*
+*.log
+
+# Tests
+.coverage
+htmlcov/
+coverage.xml
+
+# OS
+.DS_Store
+Thumbs.db

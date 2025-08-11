@@ -10,16 +10,43 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
+def _env_bool(name: str, default: bool = False) -> bool:
+    v = os.getenv(name)
+    if v is None:
+        return default
+    return v.lower() in {"1", "true", "yes", "on"}
+
+# DEBUG via env (1 en dev, 0 en prod)
+DEBUG = _env_bool("DJANGO_DEBUG", default=True)
+
+# SECRET_KEY via env (obligatoire en prod)
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = "dev-insecure-secret-key-change-me"
+    else:
+        raise RuntimeError("DJANGO_SECRET_KEY manquant (requis en production)")
+
+
+# ALLOWED_HOSTS (CSV -> liste)
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()]
+if not DEBUG and not ALLOWED_HOSTS:
+    raise RuntimeError("DJANGO_ALLOWED_HOSTS doit être défini en production")
+
+# CSRF Trusted Origins (CSV), utile derrière domaine public en HTTPS
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if o.strip()]
+
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "fp$9^593hsriajg$_%=5trot9g!1qa@ew(o-1#@=&4%=hp46(s"
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
+# # SECURITY WARNING: don't run with debug turned on in production!
+# DEBUG = False
+
+# ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -38,6 +65,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",   
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -121,10 +149,27 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
+# Debug false security 
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = _env_bool("DJANGO_SECURE_SSL_REDIRECT", default=True)
+
+    # Active HSTS quand le domaine est bien servi en HTTPS
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = "DENY"
+
+
 # --- Sentry & Logging ---
 
 SENTRY_DSN = os.getenv("SENTRY_DSN", None)
-SENTRY_ENV = os.getenv("SENTRY_ENV", "development" if DEBUG else "production")
+SENTRY_ENV = os.getenv("SENTRY_ENV", "development" if DEBUG == 1 else "production")
 SENTRY_RELEASE = os.getenv("SENTRY_RELEASE", "local")
 
 SENTRY_TRACES_SAMPLE_RATE = float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.0"))
@@ -149,8 +194,6 @@ try:
                 "enable_logs": True,
             },
         )
-        print("Sentry activé avec succès")
-        # logging.INFO("Sentry activé avec")
     else:
         logging.getLogger(__name__).info("Sentry désactivé (pas de DSN).")
 
