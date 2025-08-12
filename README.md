@@ -75,3 +75,81 @@ Utilisation de PowerShell, comme ci-dessus sauf :
 
 - Pour activer l'environnement virtuel, `.\venv\Scripts\Activate.ps1` 
 - Remplacer `which <my-command>` par `(Get-Command <my-command>).Path`
+
+
+
+
+
+## Déploiement (CI/CD)
+
+### Vue d’ensemble
+- **Branches ≠ `master`** : la CI exécute `flake8` + `pytest` avec couverture ≥ 80%.
+- **Branche `master`** : si tests OK → **build & push** de l’image Docker sur Docker Hub
+  (`clementjeulin/oc-lettings` tags `latest` + `<commit_sha>`) → **déclenchement** du
+  déploiement Render via **Deploy Hook** → Render redémarre le conteneur et exécute :
+  `migrate` + `collectstatic` + (optionnel) création superuser + (optionnel) chargement d’une fixture.
+
+### Prérequis
+- **Docker Hub**
+  - Repo public : `clementjeulin/oc-lettings`
+  - Secrets GitHub :  
+    - `DOCKERHUB_USERNAME=clementjeulin`  
+    - `DOCKERHUB_TOKEN=<Access Token Docker Hub (Read/Write)>`
+- **Render (Web Service → Existing Image)**
+  - Image : `docker.io/clementjeulin/oc-lettings:latest`
+  - Port : `8000` (Gunicorn écoute sur `0.0.0.0:8000`)
+  - Start command : _vide_ (on garde le `CMD` du Dockerfile)
+  - Variables d’environnement minimales :
+    - `DJANGO_DEBUG=0`
+    - `DJANGO_SECRET_KEY=<valeur robuste>`
+    - `DJANGO_ALLOWED_HOSTS=<mon-service>.onrender.com`
+    - `DJANGO_CSRF_TRUSTED_ORIGINS=https://<mon-service>.onrender.com`
+    - `DJANGO_SECURE_SSL_REDIRECT=1`
+  - Variables d’environnement conseillées (prod SQLite **éphémère**) :
+    - `DJANGO_CREATE_SUPERUSER=1`
+    - `DJANGO_SUPERUSER_USERNAME=admin`
+    - `DJANGO_SUPERUSER_EMAIL=admin@example.com`
+    - `DJANGO_SUPERUSER_PASSWORD=<unmotdepassesolide>`
+    - `DJANGO_LOAD_FIXTURES=1` (si `fixtures/seed.json` est présent dans le repo)
+- **GitHub Actions (secrets)** :
+  - `RENDER_DEPLOY_HOOK_URL=<URL du Deploy Hook Render>` (sinon l’étape `deploy` est skippée)
+
+### Déployer (pipeline complet)
+1. Pousser sur **`master`** (ou **Run workflow** dans l’onglet *Actions* → *Release*).
+2. La CI lance : lint + tests + couverture (≥80%).  
+3. Si OK : build & push de l’image (`latest` + `<commit_sha>`) sur Docker Hub.
+4. Si OK : appel du **Deploy Hook** Render → Render redéploie et exécute au boot :
+   - `python manage.py migrate --noinput`
+   - `python manage.py collectstatic --noinput`
+   - si `DJANGO_CREATE_SUPERUSER=1` : crée/maj un superuser
+   - si `DJANGO_LOAD_FIXTURES=1` : `python manage.py loaddata fixtures/seed.json`
+5. Le site est disponible sur `https://<mon-service>.onrender.com/`.
+
+
+
+### Tester localement depuis l’image du registre (Docker uniquement)
+docker pull docker.io/clementjeulin/oc-lettings:latest
+docker run --rm -p 8000:8000 `
+  -e DJANGO_DEBUG=0 `
+  -e DJANGO_SECRET_KEY=local-prod-key `
+  -e DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1 `
+  -e DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost,http://127.0.0.1 `
+  -e DJANGO_SECURE_SSL_REDIRECT=0 `
+  docker.io/clementjeulin/oc-lettings:latest
+
+Option : persister la DB locale entre runs (Windows)
+docker run --rm -p 8000:8000 `
+  -v "${PWD}\oc-lettings-site.sqlite3:/app/oc-lettings-site.sqlite3" `
+  -e DJANGO_DEBUG=0 `
+  -e DJANGO_SECRET_KEY=local-prod-key `
+  -e DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1 `
+  -e DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost,http://127.0.0.1 `
+  -e DJANGO_SECURE_SSL_REDIRECT=0 `
+  docker.io/clementjeulin/oc-lettings:latest
+
+## Notes importantes
+SQLite en prod sur Render (offre Free/Starter) : la DB est éphémère → on garde
+DJANGO_CREATE_SUPERUSER=1 et, si besoin, DJANGO_LOAD_FIXTURES=1 pour regarnir la base à chaque déploiement.
+
+Pour une prod persistante : passer à PostgreSQL managé (Render), exposé par DATABASE_URL
+(non requis ).
