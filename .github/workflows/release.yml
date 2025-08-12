@@ -77,9 +77,13 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
-    if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
     steps:
-      - name: Trigger Render deploy
+      - name: Trigger Render deploy (skips if no hook)
         env:
           RENDER_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-        run: curl -fsSL -X POST "$RENDER_HOOK"
+        run: |
+          if [ -z "$RENDER_HOOK" ]; then
+            echo "No Render deploy hook configured; skipping."
+            exit 0
+          fi
+          curl -fsSL -X POST "$RENDER_HOOK"
