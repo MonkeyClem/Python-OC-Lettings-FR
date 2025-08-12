@@ -1,22 +1,22 @@
-# #!/usr/bin/env bash
-# set -e
-# python manage.py migrate --noinput
-# python manage.py collectstatic --noinput
-# exec "$@"
-
 #!/usr/bin/env bash
 set -e
 
-# Migrations + statiques (pour WhiteNoise)
+echo "[entrypoint] Starting…"
+echo "[entrypoint] PWD=$(pwd)"
+echo "[entrypoint] DJANGO_CREATE_SUPERUSER=${DJANGO_CREATE_SUPERUSER:-0} (password hidden)"
+echo "[entrypoint] DJANGO_LOAD_FIXTURES=${DJANGO_LOAD_FIXTURES:-0}"
+
+# 0) Sanity: manage.py présent ?
+if [ ! -f "manage.py" ]; then
+  echo "[entrypoint][FATAL] manage.py not found in PWD. Check WORKDIR/COPY in Dockerfile."
+  exit 1
+fi
+
+# 1) Migrations + collectstatic
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
 
-# (Option) Superuser auto si demandé via env vars
-# A garder EN PERMANENCE en prod si ta DB est éphémère
-#   DJANGO_CREATE_SUPERUSER=1
-#   DJANGO_SUPERUSER_USERNAME=admin
-#   DJANGO_SUPERUSER_EMAIL=toi@example.com
-#   DJANGO_SUPERUSER_PASSWORD=UnMotDePasseSolide
+# 2) Superuser (création/màj si demandé)
 if [ "${DJANGO_CREATE_SUPERUSER}" = "1" ]; then
 python <<'PY'
 import os
@@ -38,14 +38,24 @@ else:
     User.objects.create_superuser(username=username, email=email, password=password)
     print(f"[entrypoint] Created superuser '{username}'")
 PY
+else
+  echo "[entrypoint] DJANGO_CREATE_SUPERUSER != 1 (skip)"
 fi
 
-# Charger une fixture de démo à chaque déploiement
-#   DJANGO_LOAD_FIXTURES=1   (à laisser activé si on veut des données à chaque redeploy)
-if [ "${DJANGO_LOAD_FIXTURES}" = "1" ] && [ -f "fixtures/seed.json" ]; then
-  python manage.py loaddata fixtures/seed.json || true
-  echo "[entrypoint] Loaded fixtures/seed.json"
+# 3) Fixtures (chargement strict)
+if [ "${DJANGO_LOAD_FIXTURES}" = "1" ]; then
+  if [ -f "fixtures/seed.json" ]; then
+    echo "[entrypoint] Loading fixtures/seed.json…"
+    python manage.py loaddata fixtures/seed.json
+    echo "[entrypoint] Fixtures loaded OK."
+  else
+    echo "[entrypoint][FATAL] DJANGO_LOAD_FIXTURES=1 but fixtures/seed.json is missing."
+    ls -la fixtures || true
+    exit 1
+  fi
+else
+  echo "[entrypoint] DJANGO_LOAD_FIXTURES != 1 (skip)"
 fi
 
-# Démarre Gunicorn (CMD du Dockerfile)
+echo "[entrypoint] Handing off to CMD: $*"
 exec "$@"
