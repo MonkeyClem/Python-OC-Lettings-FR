@@ -1,16 +1,19 @@
 # -- Path & Django setup -----------------------------------------------------
 import os
 import sys
-import django  # noqa
-django.setup()
+from pathlib import Path
 
-PROJECT_ROOT = os.path.abspath(os.path.join(__file__, "..", "..", ".."))
-sys.path.insert(0, PROJECT_ROOT)
+# 1) Ajouter la racine du projet au PYTHONPATH (docs/ -> racine)
+BASE_DIR = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(BASE_DIR))
 
+# 2) Définir les variables d'env AVANT d'importer Django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "oc_lettings_site.settings")
 os.environ.setdefault("DJANGO_SECRET_KEY", "docs-build")
 os.environ.setdefault("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 
+import django  # noqa
+django.setup()
 
 
 # -- Project information -----------------------------------------------------
@@ -35,10 +38,10 @@ language = 'fr'
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = "sphinx_rtd_theme"
-html_static_path = ["_static"]
+html_static_path = []  
 
-# -- Intersphinx (optionnel) -------------------------------------------------
+# Intersphinx : utiliser None (et pointer la bonne version de Django)
 intersphinx_mapping = {
-    "python": ("https://docs.python.org/3", {}),
-    "django": ("https://docs.djangoproject.com/en/3.2/", {}),
+    "python": ("https://docs.python.org/3", None),
+    "django": ("https://docs.djangoproject.com/en/5.2/", None),
 }

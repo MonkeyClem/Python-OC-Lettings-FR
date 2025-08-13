@@ -23,6 +23,3 @@ documentation for details.
    api
    usage
    deployment
-   .. :caption: Contents:..
-
-
