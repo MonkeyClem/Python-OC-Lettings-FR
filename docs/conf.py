@@ -33,6 +33,8 @@
 # -- Path & Django setup -----------------------------------------------------
 import os
 import sys
+import django  # noqa
+django.setup()
 
 PROJECT_ROOT = os.path.abspath(os.path.join(__file__, "..", "..", ".."))
 sys.path.insert(0, PROJECT_ROOT)
@@ -41,8 +43,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "oc_lettings_site.settings")
 os.environ.setdefault("DJANGO_SECRET_KEY", "docs-build")
 os.environ.setdefault("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 
-import django  # noqa
-django.setup()
+
 
 # -- Project information -----------------------------------------------------
 project = "Orange County Lettings"
