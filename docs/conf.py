@@ -38,7 +38,7 @@ language = 'fr'
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = "sphinx_rtd_theme"
-html_static_path = []  
+html_static_path = []
 
 # Intersphinx : utiliser None (et pointer la bonne version de Django)
 intersphinx_mapping = {
