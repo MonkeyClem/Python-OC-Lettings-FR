@@ -51,14 +51,6 @@ CSRF_TRUSTED_ORIGINS = [
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 
-# # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = False
-
-# ALLOWED_HOSTS = ["*"]
-
-
-# Application definition
-
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -239,6 +231,5 @@ LOGGING = {
             "level": "ERROR",
             "propagate": False,
         },
-        # tu peux affiner par app: "lettings": {...}, "profiles": {...}
     },
 }

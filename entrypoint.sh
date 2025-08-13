@@ -48,7 +48,7 @@ else
 fi
 
 
-# 3) Fixtures (chargement strict)
+# 3) Fixtures 
 if [ "${DJANGO_LOAD_FIXTURES}" = "1" ]; then
   if [ -f "fixtures/seed.json" ]; then
     echo "[entrypoint] Loading fixtures/seed.json…"
