@@ -147,9 +147,8 @@ docker run --rm -p 8000:8000 `
   -e DJANGO_SECURE_SSL_REDIRECT=0 `
   docker.io/clementjeulin/oc-lettings:latest
 
-## Notes importantes
+## Notes 
 SQLite en prod sur Render (offre Free/Starter) : la DB est éphémère → on garde
 DJANGO_CREATE_SUPERUSER=1 et, si besoin, DJANGO_LOAD_FIXTURES=1 pour regarnir la base à chaque déploiement.
 
 Pour une prod persistante : passer à PostgreSQL managé (Render), exposé par DATABASE_URL
-(non requis ).
