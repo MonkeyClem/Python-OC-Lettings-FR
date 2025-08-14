@@ -49,4 +49,3 @@ Utiliser le script Bash ou PowerShell fourni :
 
 .. code-block:: bash
 
-   USE_LOCAL_SQLITE=1 ./scripts/run-from-registry.sh
