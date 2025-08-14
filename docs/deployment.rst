@@ -1,9 +1,13 @@
-Procédures de déploiement & gestion
-===================================
+Tests en local avec Docker
+===========================
 
-Docker local (développement/test)
-----------------------------------
-Pour tester localement l’image *sans Docker Compose* :
+Deux possibilités pour tester l’application localement avec Docker :
+
+1. **Utiliser le code local** pour builder une image et tester les derniers changements
+2. **Utiliser l’image depuis Docker Hub**, pour simuler l’environnement de production (image déployée)
+
+Méthode 1 : Docker local (avec code source)
+-------------------------------------------
 
 .. code-block:: bash
 
@@ -13,7 +17,7 @@ Pour tester localement l’image *sans Docker Compose* :
      -e DJANGO_ALLOWED_HOSTS=127.0.0.1,localhost \
      oclettings:local
 
-Alternativement, utiliser `docker-compose` :
+Alternativement, avec `docker-compose` :
 
 .. code-block:: bash
 
@@ -21,46 +25,28 @@ Alternativement, utiliser `docker-compose` :
 
 Ce mode permet :
 - De monter un volume pour conserver la base SQLite (`volumes`)
-- De tester l'app avec la configuration proche de la prod
+- De tester avec la même stack (gunicorn, etc.) que la prod
 
-CI/CD (GitHub Actions)
-----------------------
-Le pipeline `release.yml` est déclenché sur `push` vers `master`.  
-Il contient 3 jobs :
+Méthode 2 : Docker Hub (image de production)
+--------------------------------------------
 
-- **test-and-lint** :
-  - Linting (flake8)
-  - Tests unitaires (pytest)
-  - Couverture de code (≥ 80%)
-  - Échec = pipeline stoppé
+.. code-block:: bash
 
-- **build-and-push** :
-  - Construction de l’image Docker
-  - Push sur Docker Hub (tag `latest` et `SHA`)
+   docker run --rm -p 8000:8000 \
+     -e DJANGO_SECRET_KEY=devsecret \
+     -e DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1 \
+     -e DJANGO_CSRF_TRUSTED_ORIGINS=http://localhost,http://127.0.0.1 \
+     -e DJANGO_SECURE_SSL_REDIRECT=0 \
+     clementjeulin/oc-lettings:latest
 
-- **deploy** :
-  - Déclenchement du déploiement via `RENDER_DEPLOY_HOOK_URL` (webhook Render)
+Tester une version spécifique (rollback possible) :
 
-Production (Render)
--------------------
-Le service Render est configuré pour tirer l’image Docker *depuis Docker Hub*.  
-Le déploiement se fait automatiquement après un push réussi.
+.. code-block:: bash
 
-Rappel de configuration :
+   docker run ... clementjeulin/oc-lettings:<sha_git_commit>
 
-- Déploiement via image Docker (pas depuis GitHub)
-- Variables d’environnement :
-  - `DJANGO_SECRET_KEY`, `ALLOWED_HOSTS`, `SENTRY_DSN`, etc.
-- Port exposé : `8000`
-- Commande finale : `gunicorn oc_lettings_site.wsgi:application`
+Utiliser le script Bash ou PowerShell fourni :
 
-Le fichier `entrypoint.sh` exécuté au lancement :
-- Applique les migrations Django
-- Collecte les fichiers statiques (`collectstatic`)
-- Crée un superuser si demandé (`DJANGO_CREATE_SUPERUSER`)
-- Charge les fixtures si configuré (`DJANGO_LOAD_FIXTURES`)
-- Lance ensuite Gunicorn
+.. code-block:: bash
 
-Base de données en production :
-- SQLite embarquée dans le conteneur
-- Pas de persistance hors du conteneur (⚠️ perte de données possible si pas sauvegardées dans `seed.json`)
+   USE_LOCAL_SQLITE=1 ./scripts/run-from-registry.sh
